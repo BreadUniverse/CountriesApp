@@ -2,8 +2,9 @@ plugins {
     id ("com.android.application")
     id ("org.jetbrains.kotlin.android")
     id ("kotlin-parcelize")
-    id("com.google.devtools.ksp")
+    //id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    kotlin("kapt")
 
 }
 
@@ -36,17 +37,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     packaging {
         resources {
@@ -74,6 +75,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+
     //Splash Api
     implementation("androidx.core:core-splashscreen:1.0.1")
 
@@ -89,7 +91,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     //Compose Foundation
-    implementation("androidx.compose.foundation:foundation:1.6.1")
+    implementation("androidx.compose.foundation:foundation:1.6.2")
 
     //Accompanist
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.4-beta")
@@ -100,23 +102,36 @@ dependencies {
     implementation("androidx.paging:paging-compose:3.2.1")
 
     //Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    annotationProcessor("androidx.room:room-compiler:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    //implementation("androidx.room:room-runtime:2.6.1")
+    //annotationProcessor("androidx.room:room-compiler:2.6.1")
+    //ksp("androidx.room:room-compiler:2.6.1")
+
+    //Room
+    implementation ("androidx.room:room-runtime:2.6.1")
+    implementation ("androidx.room:room-ktx:2.6.1")
+    kapt ("androidx.room:room-compiler:2.6.1")
+    androidTestImplementation ("androidx.room:room-testing:2.6.1")
 
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation("androidx.room:room-ktx:2.6.1")
 
+
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
+    //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
     //Dagger Hilt
     implementation("com.google.dagger:hilt-android:2.50")
-    annotationProcessor("com.google.dagger:hilt-compiler:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50")
 
     //Coil
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    //Kotlinx Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
 
 }
