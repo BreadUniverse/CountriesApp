@@ -18,6 +18,17 @@
     <fragment
         android:id="@+id/countriesDetailFragment"
         android:name="com.test.countriesapp.presentation.countries.detail.CountriesDetailFragment"
-        android:label="CountriesDetailFragment" />
+        android:label="CountriesDetailFragment">
+        <argument
+            android:name="country_id"
+            android:defaultValue="0" />
+        <action
+            android:id="@+id/action_countriesDetailFragment_to_universitiesBottomSFragment"
+            app:destination="@id/universitiesBottomSFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/universitiesBottomSFragment"
+        android:name="com.test.countriesapp.presentation.countries.universities.UniversitiesBottomSFragment"
+        android:label="UniversitiesBottomSFragment" />
 
 </navigation>

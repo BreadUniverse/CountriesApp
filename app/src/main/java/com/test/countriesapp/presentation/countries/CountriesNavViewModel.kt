@@ -3,115 +3,118 @@ package com.test.countriesapp.presentation.countries
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.test.countriesapp.database.CountriesDao
+import com.test.countriesapp.database.universities.UniversitiesDao
 import com.test.countriesapp.model.CountriesEntity
 import com.test.countriesapp.model.CountriesModel
+import com.test.countriesapp.model.universities.UniversitiesEntity
+import com.test.countriesapp.model.universities.UniversitiesModel
 import com.test.countriesapp.retrofit.CountryApi
+import com.test.countriesapp.retrofit.UniversityApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CountriesNavViewModel(
-    private val countiesDao: CountriesDao,
+    private val countriesDao: CountriesDao,
     private val countryApi: CountryApi
 ) : ViewModel() {
 
-//    private val _screenState = MutableStateFlow(
-//        ScreenState(
-//            countriesList = emptyList(),
-//            isErrorVisibility = false
-//        )
-//    )
-//    val screenState: StateFlow<ScreenState> = _screenState
-
-    val countries = countiesDao.getCountriesFlow()
+    private val countries = countriesDao.getCountriesFlow()
         .stateIn(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = listOf(),
             scope = viewModelScope
         )
 
-    private val _selectedCountriesEntity = MutableStateFlow<CountriesEntity?>(null)
-    val selectedCountriesEntity = _selectedCountriesEntity.asStateFlow()
+    private val viewModelState = MutableStateFlow(CountriesVMState())
+    val uiState = combine(
+        countries,
+        viewModelState
+    ) { countries, viewModelState ->
+        CountriesUIState(countriesList = countries, isLoading = viewModelState.isLoading,
+            error = viewModelState.error, hasError = viewModelState.hasError)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CountriesUIState())
 
     init {
         viewModelScope.launch {
-
-            if (countiesDao.getCountries().isEmpty()) {
-                loadData()
+            if (countriesDao.getCountries().isEmpty()) {
+                loadCountries()
             }
-
-//            val countriesEntities = countiesDao.getCountries()
-//
-//            _screenState.update { state ->
-//                state.copy(
-//                    countriesList = countriesEntities
-//                )
-//            }
         }
     }
 
-    private suspend fun loadData() {
-        val countries = runCatching { countryApi.getCountries() }
-        when (countries.isSuccess) {
-            true -> {
-                val listInsert = countries.getOrNull()?.map {
-                    it.toCountriesEntity()
-                } ?: emptyList()
-                countiesDao.insert(listInsert)
-            }
-            else -> Unit
-        }
-    }
-
-    fun onCountryClick(id: Long) {
+    private suspend fun loadCountries() {
         viewModelScope.launch {
-            val country = countries.value
-                .find { countriesEntity -> countriesEntity.id == id }
-                ?: return@launch
+            viewModelState.update {
+                it.copy(isLoading = true)
+            }
 
-            _selectedCountriesEntity.update { country }
+            if (countries.value.isEmpty()) {
+                val countries = runCatching { countryApi.getCountries() }
+                when (countries.isSuccess) {
+                    true -> {
+                        val listInsert = countries.getOrNull()
+                            ?.map { it.toCountriesEntity() } ?: emptyList()
+                        countriesDao.insert(listInsert)
+                    }
+
+                    else -> {
+                        viewModelState.update {
+                            it.copy(hasError = true, error = "Ошибка соединения")
+                        }
+                    }
+                }
+            }
+            viewModelState.update {
+                it.copy(isLoading = false)
+            }
         }
     }
 
     fun onCheckCountry(id: Long, isChecked: Boolean) {
         viewModelScope.launch {
-            val country = countries.value
-                .find { countriesEntity -> countriesEntity.id == id }
-                ?: return@launch
-            if (country.isCheck == isChecked) return@launch
-            countiesDao.update(country.copy(isCheck = isChecked))
+            countriesDao.updateIsCheckById(id, isChecked)
         }
     }
+}
 
-    //TODO: написать сохранение комментария, разделить ViewModel
-   /* fun onSaveComment(id: Long, comment: String) {
-        viewModelScope.launch {
-            val databaseComment = countries.value
-                .find { countriesEntity -> countriesEntity.id == id }
-            if (databaseComment == null) {
-                countiesDao.insert(CountriesEntity(node))
-            } else {
-                countiesDao.update(databaseComment.copy(node = comment))
-            }
-        }
-   */ }
+private fun CountriesModel.toCountriesEntity(): CountriesEntity {
+    return CountriesEntity(
+        id = 0,
+        nameCommon = name.common,
+        nameOfficial = name.official,
+        population = population,
+        flagImage = flags.png,
+        node = "",
+        isCheck = false,
+        capital = capital?.firstOrNull()
+    )
+}
 
-    private fun CountriesModel.toCountriesEntity(): CountriesEntity {
-        return CountriesEntity(
-            id = 0,
-            name = name.common + " (" + name.official + ")",
-            population = population,
-            flagImage = flags.png,
-            node = "",
-            isCheck = false,
-            capital = capital?.firstOrNull()
-            /*capital = capital,
-            languages = languages*/
-        )
-    }
+fun UniversitiesModel.toUniversitiesEntity(): UniversitiesEntity {
+    return UniversitiesEntity(
+        name = name,
+        country = country
+    )
+}
 
+data class CountriesUIState(
+    val countriesList: List<CountriesEntity> = listOf(),
+    val isLoading: Boolean = false,
+    val error: String = "",
+    val hasError: Boolean = false
+)
+
+data class CountriesVMState(
+    val isLoading: Boolean = false,
+    val error: String = "",
+    val hasError: Boolean = false
+)
 
 

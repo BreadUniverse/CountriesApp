@@ -5,8 +5,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.test.countriesapp.database.AppRoomDatabase
 import com.test.countriesapp.database.CountriesDao
+import com.test.countriesapp.database.universities.UniversitiesDao
 import com.test.countriesapp.retrofit.CountryApi
 import com.test.countriesapp.presentation.countries.CountriesNavViewModel
+import com.test.countriesapp.presentation.countries.detail.CountriesDetailViewModel
+import com.test.countriesapp.presentation.countries.universities.UniversitiesBottomSViewModel
+import com.test.countriesapp.retrofit.UniversityApi
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
@@ -27,8 +31,24 @@ val appModule = module {
         get<AppRoomDatabase>().countriesDao() //получение DAO объекта для доступа к операциям с базой данных
     }
 
+    single<UniversitiesDao> {
+        get<AppRoomDatabase>().universitiesDao() //получение DAO объекта для доступа к операциям с базой данных
+    }
+
     single<Gson> { GsonBuilder().setLenient().create() }
-    //экземпляр Retrofit с именем "defaultRetrofit"
+
+    single<Retrofit>(named("universityApiRetrofit")) {
+        Retrofit.Builder()
+            .baseUrl("http://universities.hipolabs.com/")
+            .addConverterFactory(GsonConverterFactory.create(get<Gson>()))
+            .build()
+    }
+
+    single<UniversityApi> {
+        get<Retrofit>(qualifier = named("universityApiRetrofit"))
+            .create(UniversityApi::class.java)
+    }
+
     single<Retrofit>(named("defaultRetrofit")) {
         //Создает новый экземпляр Retrofit Builder для настройки Retrofit.
         Retrofit.Builder()
@@ -46,8 +66,22 @@ val appModule = module {
 
     viewModel {
         CountriesNavViewModel(
-            countiesDao = get(),
+            countriesDao = get(),
             countryApi = get()
+        )
+    }
+
+    viewModel {
+        CountriesDetailViewModel(
+            countriesDao = get()
+        )
+    }
+
+    viewModel{
+        UniversitiesBottomSViewModel(
+            universityApi = get(),
+            countriesDao = get(),
+            universitiesDao = get()
         )
     }
 }

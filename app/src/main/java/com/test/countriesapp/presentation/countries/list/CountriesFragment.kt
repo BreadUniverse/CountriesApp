@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,8 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.test.countriesapp.R
 import com.test.countriesapp.databinding.FragmentCountriesBinding
 import com.test.countriesapp.model.CountriesEntity
-import com.test.countriesapp.model.ScreenState
 import com.test.countriesapp.presentation.countries.CountriesNavViewModel
+import com.test.countriesapp.presentation.countries.CountriesUIState
 import com.test.countriesapp.ui.adapter.CountriesAdapter
 import kotlinx.coroutines.launch
 import org.koin.androidx.navigation.koinNavGraphViewModel
@@ -28,15 +27,17 @@ class CountriesFragment : Fragment(R.layout.fragment_countries) {
     private val countriesAdapter: CountriesAdapter by lazy {
         CountriesAdapter(
             onClick = {
-                viewModel.onCountryClick(it)
+                val bundle = Bundle()
+                bundle.putLong("id", it)
                 findNavController()
-                    .navigate(R.id.action_countriesFragment_to_countriesDetailFragment)
+                    .navigate(R.id.action_countriesFragment_to_countriesDetailFragment, bundle)
             },
             onCheck = { id, isCheck ->
                 viewModel.onCheckCountry(id, isCheck)
             }
         )
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,9 +61,9 @@ class CountriesFragment : Fragment(R.layout.fragment_countries) {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            viewModel.countries
+            viewModel.uiState
                 .flowWithLifecycle(lifecycle)
-                .collect { countries -> handleCountries(countries) }
+                .collect { uiState -> handleUiState(uiState) }
             //viewModel.screenState.collect { state -> handleUiState(state) }
         }
     }
@@ -74,13 +75,14 @@ class CountriesFragment : Fragment(R.layout.fragment_countries) {
         }
     }
 
-    private fun handleUiState(screenState: ScreenState) {
-        binding?.errorApi?.isVisible = screenState.isErrorVisibility
-        countriesAdapter.updateData(screenState.countriesList)
-    }
+    private fun handleUiState(uiState: CountriesUIState) {
+        countriesAdapter.submitList(uiState.countriesList)
+        binding?.run {
+            loading.visibility  = if (uiState.isLoading) View.VISIBLE else View.GONE
+            error.visibility = if (uiState.hasError) View.VISIBLE else View.GONE
+            error.text = uiState.error
+        }
 
-    private fun handleCountries(countriesEntity: List<CountriesEntity>) {
-        countriesAdapter.updateData(countriesEntity)
     }
 
 }

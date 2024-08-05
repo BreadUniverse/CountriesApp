@@ -7,14 +7,19 @@ import androidx.room.PrimaryKey
 data class CountriesEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    val name: String,
+    val nameOfficial: String,
+    val nameCommon: String,
     val population: Long,
     val flagImage: String,
     var node: String,
     val isCheck: Boolean,
     val capital: String?
-    /*@ColumnInfo(name = "capital")
-    val capital: String = "",
-    val languages: String*/
-    //TODO: обновить бд, добавить столицу, языки, университеты
-)
+) {
+    // TODO: Move to UI model in future for displaying UiState
+    val displayName: String
+        get() = "$nameCommon ($nameOfficial)"
+}
+
+
+
+

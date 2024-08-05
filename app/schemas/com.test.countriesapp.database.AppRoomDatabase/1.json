@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "04dcf97d02f9e187706671688de355d0",
+    "identityHash": "51e2d58ef121f13e804051a6952bbc62",
     "entities": [
       {
         "tableName": "countries",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `population` INTEGER NOT NULL, `flagImage` TEXT NOT NULL, `node` TEXT NOT NULL, `isCheck` INTEGER NOT NULL, `capital` TEXT NOT NULL, `languages` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nameOfficial` TEXT NOT NULL, `nameCommon` TEXT NOT NULL, `population` INTEGER NOT NULL, `flagImage` TEXT NOT NULL, `node` TEXT NOT NULL, `isCheck` INTEGER NOT NULL, `capital` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -15,8 +15,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "name",
-            "columnName": "name",
+            "fieldPath": "nameOfficial",
+            "columnName": "nameOfficial",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameCommon",
+            "columnName": "nameCommon",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -48,11 +54,37 @@
             "fieldPath": "capital",
             "columnName": "capital",
             "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "universities",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `country` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "languages",
-            "columnName": "languages",
+            "fieldPath": "country",
+            "columnName": "country",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -70,7 +102,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '04dcf97d02f9e187706671688de355d0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '51e2d58ef121f13e804051a6952bbc62')"
     ]
   }
 }
